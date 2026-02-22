@@ -19,6 +19,17 @@ if (!process.env.AI_API_KEY) {
 
 initAI();
 
+const API_URL = process.env.API_URL || "http://localhost:3001";
+try {
+  const res = await fetch(`${API_URL}/boards`);
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
+  console.log(chalk.green(`  Connected to API at ${API_URL}\n`));
+} catch {
+  console.error(chalk.red(`  Error: Cannot connect to API at ${API_URL}`));
+  console.error(chalk.dim("  Make sure the API server is running: npm run dev:app\n"));
+  process.exit(1);
+}
+
 const rl = readline.createInterface({ input: stdin, output: stdout });
 
 console.log(chalk.bold("\n  self-kanban AI assistant\n"));

@@ -1,6 +1,33 @@
 import type { ChatCompletionTool } from "openai/resources/chat/completions";
 import * as api from "./api.js";
 
+const STATUSES = ["backlog", "todo", "in_progress", "in_review", "done", "cancelled"] as const;
+const PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+
+type Status = typeof STATUSES[number];
+type Priority = typeof PRIORITIES[number];
+
+function validateNumber(value: unknown, name: string): number {
+  if (typeof value !== "number") {
+    throw new Error(`${name} must be a number`);
+  }
+  return value;
+}
+
+function validateString(
+  value: unknown,
+  name: string,
+  allowed: readonly string[]
+): string {
+  if (typeof value !== "string") {
+    throw new Error(`${name} must be a string`);
+  }
+  if (allowed.length > 0 && !allowed.includes(value)) {
+    throw new Error(`${name} must be one of: ${allowed.join(", ")}`);
+  }
+  return value;
+}
+
 export const tools: ChatCompletionTool[] = [
   {
     type: "function",
@@ -34,19 +61,12 @@ export const tools: ChatCompletionTool[] = [
           board_id: { type: "number", description: "Board ID" },
           status: {
             type: "string",
-            enum: [
-              "backlog",
-              "todo",
-              "in_progress",
-              "in_review",
-              "done",
-              "cancelled",
-            ],
+            enum: STATUSES,
             description: "Filter by status",
           },
           priority: {
             type: "string",
-            enum: ["low", "medium", "high", "urgent"],
+            enum: PRIORITIES,
             description: "Filter by priority",
           },
         },
@@ -82,18 +102,11 @@ export const tools: ChatCompletionTool[] = [
           description: { type: "string", description: "Task description" },
           priority: {
             type: "string",
-            enum: ["low", "medium", "high", "urgent"],
+            enum: PRIORITIES,
           },
           status: {
             type: "string",
-            enum: [
-              "backlog",
-              "todo",
-              "in_progress",
-              "in_review",
-              "done",
-              "cancelled",
-            ],
+            enum: STATUSES,
           },
         },
         required: ["board_id", "title"],
@@ -114,18 +127,11 @@ export const tools: ChatCompletionTool[] = [
           description: { type: "string" },
           priority: {
             type: "string",
-            enum: ["low", "medium", "high", "urgent"],
+            enum: PRIORITIES,
           },
           status: {
             type: "string",
-            enum: [
-              "backlog",
-              "todo",
-              "in_progress",
-              "in_review",
-              "done",
-              "cancelled",
-            ],
+            enum: STATUSES,
           },
         },
         required: ["board_id", "task_id"],
@@ -144,14 +150,7 @@ export const tools: ChatCompletionTool[] = [
           task_id: { type: "number", description: "Task ID" },
           status: {
             type: "string",
-            enum: [
-              "backlog",
-              "todo",
-              "in_progress",
-              "in_review",
-              "done",
-              "cancelled",
-            ],
+            enum: STATUSES,
           },
         },
         required: ["board_id", "task_id", "status"],
@@ -186,48 +185,53 @@ export async function handleToolCall(
         result = await api.listBoards();
         break;
       case "get_board":
-        result = await api.getBoard(args.id as number);
+        result = await api.getBoard(validateNumber(args.id, "id"));
         break;
       case "list_tasks":
-        result = await api.listTasks(args.board_id as number, {
-          status: args.status as string | undefined,
-          priority: args.priority as string | undefined,
+        result = await api.listTasks(validateNumber(args.board_id, "board_id"), {
+          status: args.status ? validateString(args.status, "status", STATUSES) : undefined,
+          priority: args.priority ? validateString(args.priority, "priority", PRIORITIES) : undefined,
         });
         break;
       case "get_task":
         result = await api.getTask(
-          args.board_id as number,
-          args.task_id as number
+          validateNumber(args.board_id, "board_id"),
+          validateNumber(args.task_id, "task_id")
         );
         break;
       case "create_task":
-        result = await api.createTask(args.board_id as number, {
-          title: args.title as string,
+        result = await api.createTask(validateNumber(args.board_id, "board_id"), {
+          title: validateString(args.title, "title", []),
           description: args.description as string | undefined,
-          priority: args.priority as string | undefined,
-          status: args.status as string | undefined,
+          priority: args.priority ? validateString(args.priority, "priority", PRIORITIES) : undefined,
+          status: args.status ? validateString(args.status, "status", STATUSES) : undefined,
         });
         break;
       case "update_task": {
         const { board_id, task_id, ...fields } = args;
         result = await api.updateTask(
-          board_id as number,
-          task_id as number,
-          fields as { title?: string; description?: string; priority?: string; status?: string }
+          validateNumber(board_id, "board_id"),
+          validateNumber(task_id, "task_id"),
+          {
+            title: fields.title as string | undefined,
+            description: fields.description as string | undefined,
+            priority: fields.priority ? validateString(fields.priority, "priority", PRIORITIES) : undefined,
+            status: fields.status ? validateString(fields.status, "status", STATUSES) : undefined,
+          }
         );
         break;
       }
       case "update_task_status":
         result = await api.updateTaskStatus(
-          args.board_id as number,
-          args.task_id as number,
-          args.status as string
+          validateNumber(args.board_id, "board_id"),
+          validateNumber(args.task_id, "task_id"),
+          validateString(args.status, "status", STATUSES)
         );
         break;
       case "delete_task":
         result = await api.deleteTask(
-          args.board_id as number,
-          args.task_id as number
+          validateNumber(args.board_id, "board_id"),
+          validateNumber(args.task_id, "task_id")
         );
         break;
       default:
