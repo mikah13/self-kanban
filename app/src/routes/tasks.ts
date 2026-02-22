@@ -1,7 +1,8 @@
 import { and, desc, eq, gt, isNull, lt } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../db";
-import { NewTask, Priority, Status, boards, tasks } from "../db/schema";
+import type { NewTask } from "../db/schema";
+import { boards, Priority, Status, tasks } from "../db/schema";
 import { now } from "../lib/utils";
 
 // Mounted at /boards/:boardId/tasks — boardId comes from the parent router via param
@@ -9,7 +10,7 @@ export const taskRoutes = new Hono<{ Variables: { boardId: number } }>();
 
 // Middleware: resolve + validate boardId for every task route
 taskRoutes.use("/*", async (c, next) => {
-  const boardId = parseInt(c.req.param("boardId"), 10);
+  const boardId = parseInt(c.req.param("boardId") ?? "0", 10);
   if (isNaN(boardId)) return c.json({ error: "Invalid boardId" }, 400);
 
   const [board] = await db.select().from(boards).where(eq(boards.id, boardId));
@@ -33,8 +34,8 @@ taskRoutes.get("/", async (c) => {
     conditions.push(isNull(tasks.deletedAt));
   }
 
-  if (status) conditions.push(eq(tasks.status, status));
-  if (priority) conditions.push(eq(tasks.priority, priority));
+  if (status) conditions.push(eq(tasks.status, status as Status));
+  if (priority) conditions.push(eq(tasks.priority, priority as Priority));
   if (createdBy) conditions.push(eq(tasks.createdBy, createdBy));
 
   if (upcoming) {
@@ -84,10 +85,10 @@ taskRoutes.post("/", async (c) => {
 
   if (!body.title?.trim()) return c.json({ error: "title is required" }, 422);
   if (!body.createdBy?.trim()) return c.json({ error: "createdBy is required" }, 422);
-  if (body.priority && !Object.values(Priority).includes(body.priority)) {
+  if (body.priority && !Object.values(Priority).includes(body.priority as Priority)) {
     return c.json({ error: `priority must be one of: ${Object.values(Priority).join(", ")}` }, 422);
   }
-  if (body.status && !Object.values(Status).includes(body.status)) {
+  if (body.status && !Object.values(Status).includes(body.status as Status)) {
     return c.json({ error: `status must be one of: ${Object.values(Status).join(", ")}` }, 422);
   }
 
@@ -98,8 +99,8 @@ taskRoutes.post("/", async (c) => {
       title: body.title.trim(),
       description: body.description ?? null,
       createdBy: body.createdBy.trim(),
-      priority: body.priority ?? "medium",
-      status: body.status ?? "backlog",
+      priority: body.priority ?? Priority.MEDIUM,
+      status: body.status ?? Status.BACKLOG,
       startDate: body.startDate ?? null,
       endDate: body.endDate ?? null,
     })
@@ -128,10 +129,10 @@ taskRoutes.patch("/:id", async (c) => {
   if (!existing) return c.json({ error: "Task not found" }, 404);
   if (existing.deletedAt) return c.json({ error: "Cannot update a deleted task" }, 409);
 
-  if (body.priority && !Object.values(Priority).includes(body.priority)) {
+  if (body.priority && !Object.values(Priority).includes(body.priority as Priority)) {
     return c.json({ error: `priority must be one of: ${Object.values(Priority).join(", ")}` }, 422);
   }
-  if (body.status && !Object.values(Status).includes(body.status)) {
+  if (body.status && !Object.values(Status).includes(body.status as Status)) {
     return c.json({ error: `status must be one of: ${Object.values(Status).join(", ")}` }, 422);
   }
 

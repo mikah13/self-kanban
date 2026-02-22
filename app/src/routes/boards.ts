@@ -1,7 +1,8 @@
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../db";
-import { Board, NewBoard, boards } from "../db/schema";
+import type { Board, NewBoard } from "../db/schema";
+import { boards } from "../db/schema";
 import { now } from "../lib/utils";
 
 export const boardRoutes = new Hono();

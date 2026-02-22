@@ -43,15 +43,15 @@ export const tasks = sqliteTable("tasks", {
   description: text("description"),
   createdBy: text("created_by").notNull(),
   priority: text("priority", {
-    enum: ["low", "medium", "high", "urgent"],
+    enum: Object.values(Priority) as [string, ...string[]],
   })
     .notNull()
-    .default("medium"),
+    .default(Priority.MEDIUM),
   status: text("status", {
-    enum: ["backlog", "todo", "in_progress", "in_review", "done", "cancelled"],
+    enum: Object.values(Status) as [string, ...string[]],
   })
     .notNull()
-    .default("backlog"),
+    .default(Status.BACKLOG),
   startDate: text("start_date"),
   endDate: text("end_date"),
   deletedAt: text("deleted_at"),

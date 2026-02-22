@@ -65,21 +65,21 @@ app.get("/", (c) =>
     status: "ok",
     endpoints: {
       boards: {
-        "GET    /boards":              "List boards (filters: ownedBy, deleted=true|all)",
-        "GET    /boards/:id":          "Get a board",
-        "POST   /boards":              "Create a board",
-        "PATCH  /boards/:id":          "Update a board",
-        "DELETE /boards/:id":          "Soft-delete a board",
-        "POST   /boards/:id/restore":  "Restore a soft-deleted board",
+        "GET    /boards": "List boards (filters: ownedBy, deleted=true|all)",
+        "GET    /boards/:id": "Get a board",
+        "POST   /boards": "Create a board",
+        "PATCH  /boards/:id": "Update a board",
+        "DELETE /boards/:id": "Soft-delete a board",
+        "POST   /boards/:id/restore": "Restore a soft-deleted board",
       },
       tasks: {
-        "GET    /boards/:boardId/tasks":                  "List tasks (filters: status, priority, createdBy, upcoming=<days>, deleted=true|all)",
-        "GET    /boards/:boardId/tasks/:id":              "Get a task",
-        "POST   /boards/:boardId/tasks":                  "Create a task",
-        "PATCH  /boards/:boardId/tasks/:id":              "Update task fields",
-        "PATCH  /boards/:boardId/tasks/:id/status":       "Move task to a new status",
-        "DELETE /boards/:boardId/tasks/:id":              "Soft-delete a task",
-        "POST   /boards/:boardId/tasks/:id/restore":      "Restore a soft-deleted task",
+        "GET    /boards/:boardId/tasks": "List tasks (filters: status, priority, createdBy, upcoming=<days>, deleted=true|all)",
+        "GET    /boards/:boardId/tasks/:id": "Get a task",
+        "POST   /boards/:boardId/tasks": "Create a task",
+        "PATCH  /boards/:boardId/tasks/:id": "Update task fields",
+        "PATCH  /boards/:boardId/tasks/:id/status": "Move task to a new status",
+        "DELETE /boards/:boardId/tasks/:id": "Soft-delete a task",
+        "POST   /boards/:boardId/tasks/:id/restore": "Restore a soft-deleted task",
       },
     },
   })
@@ -95,7 +95,7 @@ app.onError((err, c) => {
   return c.json({ error: "Internal server error" }, 500);
 });
 
-const port = parseInt(process.env.PORT ?? "3000", 10);
+const port = parseInt(process.env.PORT ?? "3001", 10);
 
 serve({ fetch: app.fetch, port }, () => {
   console.log(`self-kanban API running on http://localhost:${port}`);
