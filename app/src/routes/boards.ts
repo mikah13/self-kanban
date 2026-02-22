@@ -111,20 +111,4 @@ boardRoutes.delete("/:id", async (c) => {
   return c.json({ message: "Board deleted", id });
 });
 
-// POST /boards/:id/restore — restore soft-deleted board
-boardRoutes.post("/:id/restore", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Invalid id" }, 400);
 
-  const [existing] = await db.select().from(boards).where(eq(boards.id, id));
-  if (!existing) return c.json({ error: "Board not found" }, 404);
-  if (!existing.deletedAt) return c.json({ error: "Board is not deleted" }, 409);
-
-  const [restored] = await db
-    .update(boards)
-    .set({ deletedAt: null, updatedAt: now() })
-    .where(eq(boards.id, id))
-    .returning();
-
-  return c.json({ data: restored });
-});

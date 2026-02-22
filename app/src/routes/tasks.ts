@@ -208,24 +208,4 @@ taskRoutes.delete("/:id", async (c) => {
   return c.json({ message: "Task deleted", id });
 });
 
-// POST /boards/:boardId/tasks/:id/restore
-taskRoutes.post("/:id/restore", async (c) => {
-  const boardId = c.get("boardId");
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Invalid id" }, 400);
 
-  const [existing] = await db
-    .select()
-    .from(tasks)
-    .where(and(eq(tasks.id, id), eq(tasks.boardId, boardId)));
-  if (!existing) return c.json({ error: "Task not found" }, 404);
-  if (!existing.deletedAt) return c.json({ error: "Task is not deleted" }, 409);
-
-  const [restored] = await db
-    .update(tasks)
-    .set({ deletedAt: null, updatedAt: now() })
-    .where(and(eq(tasks.id, id), eq(tasks.boardId, boardId)))
-    .returning();
-
-  return c.json({ data: restored });
-});
