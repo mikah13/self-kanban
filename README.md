@@ -31,3 +31,12 @@ App runs on http://localhost:5173
 
 - **Backend**: Hono, Drizzle ORM, SQLite
 - **Frontend**: React, TanStack Router, Tailwind CSS
+
+## Testing
+
+```bash
+cd app
+npm test           # Run tests
+npm run test:watch # Watch mode
+npm run test:ui    # UI mode
+```
