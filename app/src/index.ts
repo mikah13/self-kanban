@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
-import { sqlite } from "./db";
+import { getDb } from "./db";
 import { boardRoutes } from "./routes/boards";
 import { taskRoutes } from "./routes/tasks";
 
@@ -14,6 +14,8 @@ app.use("*", cors());
 app.use("*", prettyJSON());
 
 function bootstrap() {
+  const sqlite = getDb();
+
   // Boards table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS boards (
