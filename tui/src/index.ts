@@ -1,7 +1,7 @@
-import * as readline from "node:readline/promises";
-import { stdin, stdout } from "node:process";
+import type { Message } from "@openrouter/sdk/models/message.js";
 import chalk from "chalk";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { stdin, stdout } from "node:process";
+import * as readline from "node:readline/promises";
 import { chat, initAI } from "./ai.js";
 
 if (!process.env.AI_API_KEY) {
@@ -11,7 +11,7 @@ if (!process.env.AI_API_KEY) {
   console.error(
     chalk.dim(
       "Set it with: export AI_API_KEY=your-key\n" +
-        "Optional: AI_BASE_URL (default: OpenRouter), AI_MODEL (default: openai/gpt-4o-mini)"
+      "Optional: AI_BASE_URL (default: OpenRouter), AI_MODEL (default: openai/gpt-4o-mini)"
     )
   );
   process.exit(1);
@@ -39,7 +39,7 @@ console.log(
   )
 );
 
-const messages: ChatCompletionMessageParam[] = [];
+const messages: Message[] = [];
 
 async function main() {
   while (true) {

@@ -1,14 +1,14 @@
-import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { OpenRouter } from "@openrouter/sdk";
+import type { Message } from "@openrouter/sdk/models/message.js";
+import type { ToolDefinitionJson } from "@openrouter/sdk/models/tooldefinitionjson.js";
 import { tools, handleToolCall } from "./tools.js";
+import { Model } from "@openrouter/sdk/models";
 
-let client: OpenAI;
+let client: OpenRouter;
 
 export function initAI() {
-  client = new OpenAI({
-    baseURL: process.env.AI_BASE_URL || "https://openrouter.ai/api/v1",
+  client = new OpenRouter({
     apiKey: process.env.AI_API_KEY,
-    timeout: 30 * 1000,
   });
 }
 
@@ -24,20 +24,21 @@ When modifying tasks (create, update, delete), confirm what you did in your resp
 
 Keep responses concise and focused.`;
 
-export async function chat(
-  messages: ChatCompletionMessageParam[]
-): Promise<string> {
-  const allMessages: ChatCompletionMessageParam[] = [
+export async function chat(messages: Message[]): Promise<string> {
+  const allMessages: Message[] = [
     { role: "system", content: SYSTEM_PROMPT },
     ...messages,
   ];
 
   // Tool call loop — keep going until the model gives a text response
   while (true) {
-    const response = await client.chat.completions.create({
-      model,
-      messages: allMessages,
-      tools,
+    const response = await client.chat.send({
+      chatGenerationParams: {
+        model: model,
+        messages: allMessages,
+        tools: tools as ToolDefinitionJson[],
+        stream: false,
+      }
     });
 
     const choice = response.choices[0];
@@ -47,17 +48,17 @@ export async function chat(
     allMessages.push(message);
 
     // If no tool calls, return the text content
-    if (!message.tool_calls?.length) {
-      return message.content || "";
+    if (!message.toolCalls?.length) {
+      return (typeof message.content === "string" ? message.content : "") || "";
     }
 
     // Execute tool calls and append results
-    for (const toolCall of message.tool_calls) {
+    for (const toolCall of message.toolCalls) {
       const args = JSON.parse(toolCall.function.arguments);
       const result = await handleToolCall(toolCall.function.name, args);
       allMessages.push({
         role: "tool",
-        tool_call_id: toolCall.id,
+        toolCallId: toolCall.id,
         content: result,
       });
     }

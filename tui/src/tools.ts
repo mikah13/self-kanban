@@ -1,4 +1,4 @@
-import type { ChatCompletionTool } from "openai/resources/chat/completions";
+import type { ToolDefinitionJson } from "@openrouter/sdk/models/tooldefinitionjson.js";
 import * as api from "./api.js";
 
 const STATUSES = ["backlog", "todo", "in_progress", "in_review", "done", "cancelled"] as const;
@@ -28,7 +28,7 @@ function validateString(
   return value;
 }
 
-export const tools: ChatCompletionTool[] = [
+export const tools: ToolDefinitionJson[] = [
   {
     type: "function",
     function: {
