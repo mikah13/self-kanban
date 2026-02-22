@@ -20,8 +20,25 @@ export const Status = {
 export type Priority = (typeof Priority)[keyof typeof Priority];
 export type Status = (typeof Status)[keyof typeof Status];
 
+export const boards = sqliteTable("boards", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  ownedBy: text("owned_by").notNull(),
+  deletedAt: text("deleted_at"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
 export const tasks = sqliteTable("tasks", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  boardId: integer("board_id")
+    .notNull()
+    .references(() => boards.id),
   title: text("title").notNull(),
   description: text("description"),
   createdBy: text("created_by").notNull(),
@@ -46,5 +63,7 @@ export const tasks = sqliteTable("tasks", {
     .default(sql`(datetime('now'))`),
 });
 
+export type Board = typeof boards.$inferSelect;
+export type NewBoard = typeof boards.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
