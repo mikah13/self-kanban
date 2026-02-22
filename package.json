@@ -1,31 +1,16 @@
 {
   "name": "self-kanban",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "build": "tsc"
-  },
-  "repository": {
-    "type": "git",
-    "url": "http://local_proxy@127.0.0.1:18645/git/mikah13/self-kanban"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@hono/node-server": "^1.19.9",
-    "better-sqlite3": "^12.6.2",
-    "drizzle-orm": "^0.45.1",
-    "hono": "^4.12.1"
+    "dev": "concurrently \"npm run dev:app\" \"npm run dev:web\"",
+    "dev:app": "cd app && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "build": "npm run build:app && npm run build:web",
+    "build:app": "cd app && npm run build",
+    "build:web": "cd web && npm run build",
+    "install:all": "cd app && npm install && cd ../web && npm install"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^25.3.0",
-    "drizzle-kit": "^0.31.9",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "concurrently": "^9.1.2"
   }
 }
